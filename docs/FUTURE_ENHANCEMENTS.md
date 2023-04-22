@@ -1,4 +1,4 @@
-Prioritization of Enhancements for Trading Bot
+# Prioritization of Enhancements for Trading Bot
 
 The prioritized list of enhancements for a trading bot will depend on specific goals and resources. However, the following is a general prioritization of essential features and improvements:
 

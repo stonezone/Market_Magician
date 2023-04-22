@@ -1,10 +1,12 @@
-Incorporating machine learning (ML) and artificial intelligence (AI) into the trading strategy can potentially improve the prediction accuracy and adaptability of the trading bot. To implement ML and AI for the strategy, you can follow these steps:
+# Incorporating machine learning (ML) and artificial intelligence (AI) into the trading strategy can potentially improve the prediction accuracy and adaptability of the trading bot. To implement ML and AI for the strategy
 
-Selecting ML Models: Identify suitable ML models for predicting market trends, such as time-series forecasting models (e.g., ARIMA, LSTM, or Prophet), classification models (e.g., Logistic Regression, Random Forest, or SVM), or reinforcement learning models (e.g., Q-learning or Deep Q-Network). 
+you can follow these steps:
+
+Selecting ML Models: Identify suitable ML models for predicting market trends, such as time-series forecasting models (e.g., ARIMA, LSTM, or Prophet), classification models (e.g., Logistic Regression, Random Forest, or SVM), or reinforcement learning models (e.g., Q-learning or Deep Q-Network).
 
 Choose models based on their relevance to your trading strategy and the available data.
 
-Feature Engineering: In the AdvancedDataProcessor.py script, preprocess the collected data and create relevant features for input to the ML models. 
+Feature Engineering: In the AdvancedDataProcessor.py script, preprocess the collected data and create relevant features for input to the ML models.
 
 Features can include technical indicators, sentiment analysis results, lagged price data, or other relevant financial data.
 

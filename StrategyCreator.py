@@ -83,7 +83,7 @@ def simple_moving_average_strategy(data: pd.DataFrame) -> Strategy:
         long_ma = ma_long.calculate(data)
         return (short_ma < long_ma).shift(1).fillna(False)
 
-    r    return Strategy(entry_condition, exit_condition)
+    return Strategy(entry_condition, exit_condition)
 
 def backtest_strategy(strategy: Strategy, data: pd.DataFrame, initial_capital: float = 10000) -> pd.DataFrame:
     entry_signals, exit_signals = strategy.generate_signals(data)

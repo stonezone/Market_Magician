@@ -1,6 +1,6 @@
-MarketMagician README.md
+# MarketMagician README.md
 
-# MarketMagician
+Market_Magician
 
 MarketMagician is a comprehensive trading bot that collects market data, processes it, creates trading strategies, and executes trades. The bot consists of six main components, working together to provide an end-to-end trading solution. The components are:
 
@@ -20,7 +20,6 @@ These components are designed to be modular and maintainable, allowing for easy 
 Make sure you have Python 3.8 or higher installed. This bot is designed to run on an M1 Mac. Ensure all required dependencies are installed by running:
 
 pip install -r requirements.txt
-
 
 ### User Actions
 

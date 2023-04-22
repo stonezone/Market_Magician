@@ -47,7 +47,7 @@ class DataCollectionError(Exception):
 def get_data_from_source(ticker: str, source: str) -> pd.DataFrame:
     # ... (Same as before)
 
-def get_data(tickers: List[str], sources: Optional[List[str]] = None) -> pd.DataFrame:
+ def get_data(tickers: List[str], sources: Optional[List[str]] = None) -> pd.DataFrame:
     """
     Get historical stock data from multiple sources and merge them into one dataframe.
 
@@ -98,22 +98,22 @@ def get_data(tickers: List[str], sources: Optional[List[str]] = None) -> pd.Data
                     merged_data = merged_data.join(data, how="outer")
                 except DataCollectionError as e:
                     logger.warning(f"Failed to get data from {e.source} for {e.ticker}: {e}")
-                                except Exception as e:
+                except Exception as e:
                                     logger.error(f"Unexpected error: {e}")
 
                     # Sort the merged data by date
-                    merged_data.sort_index(inplace=True)
+                merged_data.sort_index(inplace=True)
 
                     # Apply additional data processing steps if required
-                    if config.get("additional_data_processing"):
+                if config.get("additional_data_processing"):
                         merged_data = apply_additional_data_processing(merged_data)
 
                     # Store the merged data in the DataStorageManager
-                    store_data(merged_data)
+                store_data(merged_data)
 
-                    logger.info(f"Successfully collected data for {tickers}")
+                logger.info(f"Successfully collected data for {tickers}")
 
-                    return merged_data
+                return merged_data
 
                 def store_data(data: pd.DataFrame) -> None:
                     """

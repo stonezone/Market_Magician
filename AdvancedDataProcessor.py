@@ -67,21 +67,21 @@ class DataProcessor:
     def save_model(self, model, model_name: str, model_type: str = 'tensorflow'):
         if model_type == 'tensorflow':
                         model.save(f"{model_name}.h5")
-                    else:
+        else:
                         from joblib import dump
                         dump(model, f"{model_name}.joblib")
 
-                def load_model(self, model_name: str, model_type: str = 'tensorflow'):
-                    if model_type == 'tensorflow':
+        def load_model(self, model_name: str, model_type: str = 'tensorflow'):
+                if model_type == 'tensorflow':
                         return tf.keras.models.load_model(f"{model_name}.h5")
-                    else:
+                else:
                         from joblib import load
                         return load(f"{model_name}.joblib")
 
                 # Add more data processing and analysis methods as needed
 
-            if __name__ == "__main__":
-                data_processor = DataProcessor()
+                if __name__ == "__main__":
+                 data_processor = DataProcessor()
 
                 # Example usage:
                 # 1. Preprocess data

@@ -27,7 +27,7 @@ Installation
 Clone the repository:
 bash
 Copy code
-git clone https://github.com/yourusername/MarketMagician.git
+git clone 'https://github.com/yourusername/MarketMagician.git'
 cd MarketMagician
 Install the required Python packages:
 bash

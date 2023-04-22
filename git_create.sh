@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Change this to your GitHub username
+github_user="stonezone"
+
+# Get the current working directory name
+cwd_name=$(basename "$PWD")
+
+# Use the cwd name as the repository name
+github_repo="$cwd_name"
+
+# Change this to your commit message
+commit_message="Initial commit"
+
+# Initialize a local Git repository
+git init
+
+# Add files to the staging area
+git add .
+
+# Commit files with a message
+git commit -m "$commit_message"
+
+# Add GitHub repository as a remote
+git remote add origin git@github.com:$github_user/$github_repo.git
+
+# Push files to GitHub
+git push -u origin main
+
+# Exit with status code 0 (success)
+exit 0

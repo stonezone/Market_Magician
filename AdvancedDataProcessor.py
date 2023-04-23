@@ -1,93 +1,243 @@
-# AdvancedDataProcessor.py
-
-# AdvancedDataProcessor.py
-
-import logging
+# Importing the libraries
+import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
-from typing import Callable, Union, List
-import tensorflow as tf
-import spacy
-from joblib import Parallel, delayed
-import os
+import talib as ta
+from sklearn.model_selection import ParameterGrid
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Defining the class
+class AdvancedDataProcessor:
 
-class DataProcessor:
-
+    # Initializing the class
     def __init__(self):
-        self.nlp = spacy.load('en_core_web_sm')
-        self.scaler = StandardScaler()
+        # Defining the parameters for the indicators
+        self.params = {
+            'sma': {'timeperiod': [5, 10, 20, 50, 100, 200]},
+            'ema': {'timeperiod': [5, 10, 20, 50, 100, 200]},
+            'rsi': {'timeperiod': [6, 12, 24]},
+            'macd': {'fastperiod': [12], 'slowperiod': [26], 'signalperiod': [9]},
+            'stoch': {'fastk_period': [14], 'slowk_period': [3], 'slowd_period': [3]},
+            'adx': {'timeperiod': [14]},
+            'atr': {'timeperiod': [14]}
+        }
+        # Defining the thresholds for the entry and exit signals
+        self.thresholds = {
+            'rsi_buy': 30,
+            'rsi_sell': 70,
+            'macd_buy': 0,
+            'macd_sell': 0,
+            'stoch_buy': 20,
+            'stoch_sell': 80,
+            'adx_trend': 25
+        }
+        # Initializing an empty dataframe for the processed data
+        self.data = pd.DataFrame()
 
-    def preprocess(self, data: pd.DataFrame, columns: Union[str, List[str]]) -> pd.DataFrame:
-        preprocessed_data = data.copy()
-        preprocessed_data[columns] = self.scaler.fit_transform(preprocessed_data[columns])
-        return preprocessed_data
+    # Defining a helper function to generate column names for the indicators
+    def generateColName(self, indicator, params):
+        # Creating a column name with the indicator and the parameter values
+        col = indicator + '_' + '_'.join([str(v) for v in params.values()])
+        # Returning the column name
+        return col
 
-    def sentiment_analysis(self, texts: List[str], pipeline: Callable = None, n_jobs: int = -1) -> List[float]:
-        if not pipeline:
-            pipeline = self.nlp
-        results = Parallel(n_jobs=n_jobs)(delayed(pipeline)(text) for text in texts)
-        sentiment_scores = [doc.sentiment for doc in results]
-        return sentiment_scores
-
-    def train_regression_model(self, X: pd.DataFrame, y: pd.Series, test_size: float = 0.2) -> Pipeline:
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
-        pipeline = Pipeline([('scaler', StandardScaler()), ('model', LinearRegression())])
-        pipeline.fit(X_train, y_train)
-
-        y_pred = pipeline.predict(X_test)
-        mse = mean_squared_error(y_test, y_pred)
-        logger.info(f"Mean Squared Error: {mse}")
-
-        return pipeline
-
-    def model_selection(self, X: pd.DataFrame, y: pd.Series, models: List[Callable], param_grid: dict, scoring: str = 'neg_mean_squared_error', n_jobs: int = -1) -> Pipeline:
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-        grid_search = GridSearchCV(estimator=models, param_grid=param_grid, scoring=scoring, cv=5, n_jobs=n_jobs)
-        grid_search.fit(X_train, y_train)
-
-        best_model = grid_search.best_estimator_
-        logger.info(f"Best Model: {best_model}")
-
-        return best_model
-
-    def train_neural_network(self, X: pd.DataFrame, y: pd.Series, model: tf.keras.Model, batch_size: int = 32, epochs: int = 100):
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        model.compile(optimizer='adam', loss='mean_squared_error', metrics=['mse'])
-        model.fit(X_train, y_train, batch_size=batch_size, epochs=epochs, validation_data=(X_test, y_test))
-        return model
-
-    def save_model(self, model, model_name: str, model_type: str = 'tensorflow'):
-        if model_type == 'tensorflow':
-                        model.save(f"{model_name}.h5")
-        else:
-                        from joblib import dump
-                        dump(model, f"{model_name}.joblib")
-
-        def load_model(self, model_name: str, model_type: str = 'tensorflow'):
-                if model_type == 'tensorflow':
-                        return tf.keras.models.load_model(f"{model_name}.h5")
+    # Defining the method to process the data and generate the indicators
+    def processData(self, data):
+        # Creating a copy of the data
+        data = data.copy()
+        # Looping through the indicators
+        for indicator in self.params:
+            # Getting the parameters for the indicator
+            params = self.params[indicator]
+            # Creating a grid of possible parameter combinations
+            grid = ParameterGrid(params)
+            # Looping through the parameter combinations
+            for p in grid:
+                # Generating the indicator values using TA-Lib
+                values = getattr(ta, indicator.upper())(data['Close'], **p)
+                # Handling indicators with multiple outputs (such as MACD or STOCH)
+                if isinstance(values, tuple):
+                    # Looping through the outputs
+                    for i in range(len(values)):
+                        # Generating a column name with the indicator and the parameter values using the helper function
+                        col = self.generateColName(indicator, p)
+                        # Adding a suffix for the output index
+                        col += '_' + str(i)
+                        # Adding the column to the data
+                        data[col] = values[i]
                 else:
-                        from joblib import load
-                        return load(f"{model_name}.joblib")
+                    # Generating a column name with the indicator and the parameter values using the helper function
+                    col = self.generateColName(indicator, p)
+                    # Adding the column to the data
+                    data[col] = values
+        
+        # Storing the processed data as a class attribute
+        self.data = data
 
-                # Add more data processing and analysis methods as needed
-
-                if __name__ == "__main__":
-                 data_processor = DataProcessor()
-
-                # Example usage:
-                # 1. Preprocess data
-                # 2. Perform sentiment analysis
-                # 3. Train a regression model
-                # 4. Perform model selection
-                # 5. Train a neural network
-                # 6. Save and load a model
+    # Defining the method to generate the entry and exit signals based on the indicators
+    def generateSignals(self):
+        # Initializing an empty list for the signals
+        signals = []
+        # Looping through the rows of the processed data (using self.data instead of passing it as an argument)
+        for i in range(len(self.data)):
+            # Getting the current row as a dictionary
+            row = self.data.iloc[i].to_dict()
+    # Initializing an empty dictionary for the signal
+            signal = {}
+                # Setting the date and price of the signal
+            signal['Date'] = row['Date']
+            signal['Price'] = row['Close']
+                # Initializing a list for the buy reasons and sell reasons
+            buy_reasons = []
+            sell_reasons = []
             
+                ### SMA and EMA ###
+            
+                # Getting all the columns that start with sma or ema
+            sma_cols = [col for col in row if col.startswith('sma')]
+            ema_cols = [col for col in row if col.startswith('ema')]
+            
+                # Looping through all possible combinations of sma and ema columns (crosses)
+            for sma_col in sma_cols:
+                    for ema_col in ema_cols:
+                        # Getting the current and previous values of sma and ema
+                        curr_sma = row[sma_col]
+                        prev_sma = self.data.iloc[i-1][sma_col]
+                        curr_ema = row[ema_col]
+                        prev_ema = self.data.iloc[i-1][ema_col]
+                        # Checking if there is a bullish cross (sma crosses above ema)
+                        if curr_sma > curr_ema and prev_sma < prev_ema:
+                            # Adding a buy reason with the sma and ema parameters
+                            buy_reasons.append(f'SMA {sma_col.split("_")[1]} crossed above EMA {ema_col.split("_")[1]}')
+                        # Checking if there is a bearish cross (sma crosses below ema)
+                        if curr_sma < curr_ema and prev_sma > prev_ema:
+                            # Adding a sell reason with the sma and ema parameters
+                            sell_reasons.append(f'SMA {sma_col.split("_")[1]} crossed below EMA {ema_col.split("_")[1]}')
+            
+                ### RSI ###
+            
+                # Getting all the columns that start with rsi
+            rsi_cols = [col for col in row if col.startswith('rsi')]
+            
+                # Looping through all the rsi columns
+            for rsi_col in rsi_cols:
+                    # Getting the current value of rsi
+                    curr_rsi = row[rsi_col]
+                    # Checking if the rsi is below the buy threshold
+                    if curr_rsi < self.thresholds['rsi_buy']:
+                        # Adding a buy reason with the rsi parameter
+                        buy_reasons.append(f'RSI {rsi_col.split("_")[1]} below {self.thresholds["rsi_buy"]}')
+                    # Checking if the rsi is above the sell threshold
+                    if curr_rsi > self.thresholds['rsi_sell']:
+                        # Adding a sell reason with the rsi parameter
+                        sell_reasons.append(f'RSI {rsi_col.split("_")[1]} above {self.thresholds["rsi_sell"]}')
+            
+                ### MACD ###
+            
+                # Getting all the columns that start with macd and end with 0 (macd line)
+            macd_cols = [col for col in row if col.startswith('macd') and col.endswith('0')]
+            
+                # Looping through all the macd columns
+            for macd_col in macd_cols:
+                    # Getting the corresponding signal line column (ending with 1)
+                    signal_col = macd_col[:-1] + '1'
+                    # Getting the current and previous values of macd and signal lines
+                    curr_macd = row[macd_col]
+                    prev_macd = self.data.iloc[i-1][macd_col]
+                    curr_signal = row[signal_col]
+                    prev_signal = self.data.iloc[i-1][signal_col]
+                    # Checking if there is a bullish cross (macd crosses above signal line)
+                    if curr_macd > curr_signal and prev_macd < prev_signal:
+                        # Adding a buy reason with the macd parameters
+                        buy_reasons.append(f'MACD {macd_col.split("_")[1:4]} crossed above signal line')
+                    # Checking if there is a bearish cross (macd crosses below signal line)
+                    if curr_macd < curr_signal and prev_macd > prev_signal:
+                        # Adding a sell reason with the macd parameters
+                        sell_reasons.append(f'MACD {macd_col.split("_")[1:4]} crossed below signal line')
+            
+                ### STOCH ###
+                
+                # Getting all the columns that start with stoch and end with 0 (slowk line)
+                    stoch_cols = [col for col in row if col.startswith('stoch') and col.endswith('0')]
+            
+                            # Looping through all the stoch columns
+                    for stoch_col in stoch_cols:
+                                # Getting the corresponding slowd line column (ending with 1)
+                                slowd_col = stoch_col[:-1] + '1'
+                                # Getting the current values of slowk and slowd lines
+                                curr_slowk = row[stoch_col]
+                                curr_slowd = row[slowd_col]
+                                # Checking if both lines are below the buy threshold
+                                if curr_slowk < self.thresholds['stoch_buy'] and curr_slowd < self.thresholds['stoch_buy']:
+                                    # Adding a buy reason with the stoch parameters
+                                    buy_reasons.append(f'STOCH {stoch_col.split("_")[1:4]} below {self.thresholds["stoch_buy"]}')
+                                # Checking if both lines are above the sell threshold
+                                if curr_slowk > self.thresholds['stoch_sell'] and curr_slowd > self.thresholds['stoch_sell']:
+                                    # Adding a sell reason with the stoch parameters
+                                    sell_reasons.append(f'STOCH {stoch_col.split("_")[1:4]} above {self.thresholds["stoch_sell"]}')
+            
+                            ### ADX ###
+            
+                            # Getting all the columns that start with adx
+                    adx_cols = [col for col in row if col.startswith('adx')]
+            
+                            # Looping through all the adx columns
+                    for adx_col in adx_cols:
+                                # Getting the current value of adx
+                                curr_adx = row[adx_col]
+                                # Checking if the adx is above the trend threshold
+                                if curr_adx > self.thresholds['adx_trend']:
+                                    # Adding a trend reason with the adx parameter
+                                    trend_reason = f'ADX {adx_col.split("_")[1]} above {self.thresholds["adx_trend"]}'
+                                else:
+                                    # Setting the trend reason to None
+                                    trend_reason = None
+            
+                            ### ATR ###
+            
+                            # Getting all the columns that start with atr
+                    atr_cols = [col for col in row if col.startswith('atr')]
+            
+                            # Looping through all the atr columns
+                    for atr_col in atr_cols:
+                                # Getting the current value of atr
+                                curr_atr = row[atr_col]
+                                # Calculating the stop loss price based on the atr value and a multiplier
+                                stop_loss = row['Close'] - curr_atr * 2
+                                # Adding a stop loss reason with the atr parameter and the stop loss price
+                                stop_loss_reason = f'ATR {atr_col.split("_")[1]} stop loss at {stop_loss:.2f}'
+            
+                            # Checking if there are any buy reasons and no sell reasons
+                    if buy_reasons and not sell_reasons:
+                                # Setting the signal type to buy
+                                signal['Type'] = 'Buy'
+                                # Joining all the buy reasons with commas
+                                signal['Reason'] = ', '.join(buy_reasons)
+                                # Adding the trend reason if any
+                                if trend_reason:
+                                    signal['Reason'] += ', ' + trend_reason
+                                # Adding the stop loss reason
+                                signal['Reason'] += ', ' + stop_loss_reason
+            
+                            # Checking if there are any sell reasons and no buy reasons
+                    elif sell_reasons and not buy_reasons:
+                                # Setting the signal type to sell
+                                signal['Type'] = 'Sell'
+                                # Joining all the sell reasons with commas
+                                signal['Reason'] = ', '.join(sell_reasons)
+                                # Adding the trend reason if any
+                                if trend_reason:
+                                    signal['Reason'] += ', ' + trend_reason
+                                # Adding the stop loss reason
+                                signal['Reason'] += ', ' + stop_loss_reason
+            
+                            # Otherwise, setting the signal type to hold
+                    else:
+                                signal['Type'] = 'Hold'
+                                signal['Reason'] = 'No clear signal'
+            
+                            # Appending the signal to the list of signals
+                    signals.append(signal)
+        
+                        # Converting the list of signals to a dataframe
+                    signals = pd.DataFrame(signals)
+                        # Returning the signals dataframe
+                    return signals

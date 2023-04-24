@@ -17,7 +17,11 @@ import pandas as pd
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import lru_cache
-from ratelimit import limits, sleep_and_retry
+try:
+    from ratelimit import limits, sleep_and_retry
+except ImportError:
+    print("ratelimit module not found. Please install it using 'pip install ratelimiter'")
+
 
 # Set up logging
 logging.basicConfig(
@@ -54,32 +58,90 @@ def limited_request(url: str, **kwargs) -> requests.Response:
 
 @lru_cache(maxsize=None)
 def get_data_from_alpha_vantage(ticker: str) -> pd.DataFrame:
-    # ... (Same as before, but replace requests.get with limited_request)
+    api_key = config["data_sources"]["alpha_vantage"]["api_key"]
+    base_url = "https://www.alphavantage.co/query"
+    params = {
+        "function": "TIME_SERIES_DAILY_ADJUSTED",
+        "symbol": ticker,
+        "outputsize": "full",
+        "apikey": api_key,
+        "datatype": "json",
+    }
+    response = limited_request(base_url, params=params)
 
-    @lru_cache(maxsize=None)
-    def get_data_from_yahoo(ticker: str) -> pd.DataFrame:
-        # ... (Same as before, but replace requests.get with limited_request)
+    if response.status_code != 200:
+        raise DataCollectionError("Failed to fetch data from Alpha Vantage", "alpha_vantage", ticker)
 
-        # ... (Include other get_data_from_* functions as before)
+    data = response.json()
+    if "Error Message" in data:
+        raise DataCollectionError(data["Error Message"], "alpha_vantage", ticker)
 
-        def get_data_from_source(ticker: str, source: str) -> pd.DataFrame:
-            # ... (Same as before)
+    df = pd.DataFrame(data["Time Series (Daily)"]).T
+    df.index = pd.to_datetime(df.index)
+    df = df.rename(columns=lambda x: x.strip().replace(" ", "_").lower())
 
-            def get_data(tickers: List[str], sources: Optional[List[str]] = None) -> pd.DataFrame:
-                """
+    return df
 
-        Get historical stock data from multiple sources and merge them into one dataframe.
 
-        Parameters:
-        tickers (list[str]): A list of stock symbols to query.
-        sources (list[str]): A list of data sources to use. If None, use all available sources.
+@lru_cache(maxsize=None)
+def get_data_from_yahoo(ticker: str) -> pd.DataFrame:
+    base_url = f"https://query1.finance.yahoo.com/v7/finance/download/{ticker}"
+    params = {
+        "period1": "0",
+        "period2": str(int(time.time())),
+        "interval": "1d",
+        "events": "history",
+        "includeAdjustedClose": "true",
+    }
+    response = limited_request(base_url, params=params)
 
-        Returns:
-        pandas.DataFrame: A dataframe containing the historical stock data from all sources.
+    if response.status_code != 200:
+        raise DataCollectionError("Failed to fetch data from Yahoo Finance", "yahoo", ticker)
 
-        Raises:
-        ValueError: If the sources list is empty or contains invalid sources.
-        """
+    data = response.text
+    df = pd.read_csv(StringIO(data), index_col="Date", parse_dates=True)
+
+    return df
+
+
+def normalize_data(data: pd.DataFrame, source: str) -> pd.DataFrame:
+    """
+    Normalize the data according to the data source.
+
+    Parameters:
+    data (pandas.DataFrame): A dataframe containing the raw data.
+    source (str): The data source name.
+
+    Returns:
+    pandas.DataFrame: A dataframe containing the normalized data.
+    """
+    # Implement data normalization steps based on the source
+    pass
+
+
+def get_data_from_source(ticker: str, source: str) -> pd.DataFrame:
+    if source == "alpha_vantage":
+        return get_data_from_alpha_vantage(ticker)
+    elif source == "yahoo":
+        return get_data_from_yahoo(ticker)
+    else:
+        raise ValueError(f"Invalid or unsupported source: {source}")
+
+
+def get_data(tickers: List[str], sources: Optional[List[str]] = None) -> pd.DataFrame:
+    """
+    Get historical stock data from multiple sources and merge them into one dataframe.
+
+    Parameters:
+    tickers (list[str]): A list of stock symbols to query.
+    sources (list[str]): A list of data sources to use. If None, use all available sources.
+
+    Returns:
+    pandas.DataFrame: A dataframe containing the historical stock data from all sources.
+
+    Raises:
+    ValueError: If the sources list is empty or contains invalid sources.
+    """
     logger.info(f"Getting data from multiple sources for {tickers}")
     # Define the default list of sources
     default_sources = list(config["data_sources"].keys())
@@ -136,30 +198,36 @@ def get_data_from_alpha_vantage(ticker: str) -> pd.DataFrame:
 
                     def store_data(data: pd.DataFrame) -> None:
                         """
-                        Store the collected data in the DataStorageManager.
-                        Parameters:
-                        data (pandas.DataFrame): A dataframe containing the collected data.
-                        Returns:
-                        None
-                        """
-                        from DataStorageManager import DataStorageManager
-                        data_storage_manager = DataStorageManager()
-                        data_storage_manager.store(data)
+    Store the collected data in the DataStorageManager.
 
-                    def apply_additional_data_processing(data: pd.DataFrame) -> pd.DataFrame:
-                        """
-                        Apply additional data processing steps to the merged data, if required.
-                        Parameters:
-                        data (pandas.DataFrame): A dataframe containing the merged data.
+    Parameters:
+    data (pandas.DataFrame): A dataframe containing the collected data.
 
-                        Returns:
-                        pandas.DataFrame: A dataframe containing the processed data.
-                        """
-                        # Implement additional data processing steps here, e.g., adding technical indicators, etc.
-                        # This function can also call other scripts or modules, such as the AdvancedDataProcessor, if needed.
-                        pass
-                    if __name__ == "__main__":
-                        tickers = ["AAPL", "GOOG", "MSFT"]
-                        sources = ["yahoo", "alpha_vantage"]
-                        data = get_data(tickers, sources)
-                        print(data)
+    Returns:
+    None
+    """
+    # Implement the logic to store the data using your preferred DataStorageManager.
+    pass
+
+
+def apply_additional_data_processing(data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Apply additional data processing steps to the collected data.
+
+    Parameters:
+    data (pandas.DataFrame): A dataframe containing the collected data.
+
+    Returns:
+    pandas.DataFrame: A dataframe containing the processed data.
+    """
+    # Implement the logic to apply additional data processing steps.
+    pass
+
+
+if __name__ == "__main__":
+    tickers = ["AAPL", "GOOGL"]
+    sources = ["alpha_vantage", "yahoo"]
+    data = get_data(tickers, sources)
+    print(data)
+
+

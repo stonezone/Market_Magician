@@ -167,8 +167,7 @@ def get_data(tickers: List[str], sources: Optional[List[str]] = None) -> pd.Data
     for ticker in tickers:
         # Fetch data for each ticker using ThreadPoolExecutor for parallel processing
         with ThreadPoolExecutor() as executor:
-            futures = {executor.submit(
-                get_data_from_source, ticker, source): source for source in sources}
+            futures = {executor.submit(get_data_from_source, ticker, source): source for source in sources}
 
             for future in as_completed(futures):
                 try:
@@ -179,24 +178,24 @@ def get_data(tickers: List[str], sources: Optional[List[str]] = None) -> pd.Data
                     data = normalize_data(data, source)
                     merged_data = merged_data.join(data, how="outer")
                 except DataCollectionError as e:
-                    logger.warning(
-                        f"Failed to get data from {e.source} for {e.ticker}: {e}")
+                    logger.warning(f"Failed to get data from {e.source} for {e.ticker}: {e}")
                 except Exception as e:
                     logger.error(f"Unexpected error: {e}")
-                    # Sort the merged data by date
-                    merged_data.sort_index(inplace=True)
-                    # Apply additional data processing steps if required
-                    if config.get("additional_data_processing"):
 
-                        merged_data = apply_additional_data_processing(
-                            merged_data)
-                        # Store the merged data in the DataStorageManager
-                        store_data(merged_data)
-                        logger.info(
-                            f"Successfully collected data for {tickers}")
-                        return merged_data
+    # Sort the merged data by date
+    merged_data.sort_index(inplace=True)
 
-                    def store_data(data: pd.DataFrame) -> None:
+    # Apply additional data processing steps if required
+    if config.get("additional_data_processing"):
+        merged_data = apply_additional_data_processing(merged_data)
+
+    # Store the merged data in the DataStorageManager
+    store_data(merged_data)
+    logger.info(f"Successfully collected data for {tickers}")
+
+    # Add the missing return statement
+    return merged_data
+def store_data(data: pd.DataFrame) -> None:
                         """
     Store the collected data in the DataStorageManager.
 
@@ -207,7 +206,7 @@ def get_data(tickers: List[str], sources: Optional[List[str]] = None) -> pd.Data
     None
     """
     # Implement the logic to store the data using your preferred DataStorageManager.
-    pass
+pass
 
 
 def apply_additional_data_processing(data: pd.DataFrame) -> pd.DataFrame:

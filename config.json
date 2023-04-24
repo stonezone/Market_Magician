@@ -1,0 +1,10 @@
+{
+  "data_sources": {
+    "alpha_vantage": {
+      "api_key": "AMN288LRX1SLVM66"
+    },
+    "yahoo": {}
+  },
+  "additional_data_processing": false
+}
+

@@ -96,6 +96,7 @@ def get_data_from_yahoo(ticker: str) -> pd.DataFrame:
     response = limited_request(base_url, params=params)
 
     if response.status_code != 200:
+        print(f"Failed to fetch data from Yahoo Finance for {ticker}: {response.status_code}, {response.text}")  # Add this print statement
         raise DataCollectionError("Failed to fetch data from Yahoo Finance", "yahoo", ticker)
 
     data = response.text
@@ -104,19 +105,35 @@ def get_data_from_yahoo(ticker: str) -> pd.DataFrame:
     return df
 
 
+
 def normalize_data(data: pd.DataFrame, source: str) -> pd.DataFrame:
-    """
-    Normalize the data according to the data source.
+    # Rename columns based on the source
+    if source == "yahoo":
+        column_mapping = {"Open": "open", "High": "high", "Low": "low", "Close": "close", "Volume": "volume"}
+    elif source == "alpha_vantage":
+        column_mapping = {
+            "1. open": "open",
+            "2. high": "high",
+            "3. low": "low",
+            "4. close": "close",
+            "5. adjusted close": "adjusted_close",
+            "6. volume": "volume",
+            "7. dividend amount": "dividend_amount",
+            "8. split coefficient": "split_coefficient",
+        }
+    else:
+        raise NotImplementedError(f"Column normalization not implemented for source: {source}")
 
-    Parameters:
-    data (pandas.DataFrame): A dataframe containing the raw data.
-    source (str): The data source name.
+    data = data.rename(columns=column_mapping)
 
-    Returns:
-    pandas.DataFrame: A dataframe containing the normalized data.
-    """
-    # Implement data normalization steps based on the source
-    pass
+    # Add a print statement to check the data after renaming columns
+    print(f"Data after renaming columns ({source}):", data)
+
+    # Drop unnecessary columns
+    # ...
+
+    return data
+
 
 
 def get_data_from_source(ticker: str, source: str) -> pd.DataFrame:
@@ -234,5 +251,3 @@ if __name__ == "__main__":
     sources = ["alpha_vantage", "yahoo"]
     data = get_data(tickers, sources)
     print(data)
-
-

@@ -174,8 +174,15 @@ def get_data(tickers: List[str], sources: Optional[List[str]] = None) -> pd.Data
                     source = futures[future]
                     data = future.result()
 
+                    # Add a print statement to check the data before normalization
+                    print(f"Data before normalization ({ticker}, {source}):", data)
+
                     # Normalize and merge data
                     data = normalize_data(data, source)
+                    
+                    # Add a print statement to check the data after normalization
+                    print(f"Data after normalization ({ticker}, {source}):", data)
+
                     merged_data = merged_data.join(data, how="outer")
                 except DataCollectionError as e:
                     logger.warning(f"Failed to get data from {e.source} for {e.ticker}: {e}")
@@ -193,7 +200,6 @@ def get_data(tickers: List[str], sources: Optional[List[str]] = None) -> pd.Data
     store_data(merged_data)
     logger.info(f"Successfully collected data for {tickers}")
 
-    # Add the missing return statement
     return merged_data
 def store_data(data: pd.DataFrame) -> None:
                         """

@@ -1,13 +1,14 @@
-2023-04-24 01:52:42,485 - INFO - Getting data from multiple sources for ['AAPL', 'GOOG']
-2023-04-24 01:52:42,519 - DEBUG - Starting new HTTPS connection (1): query1.finance.yahoo.com:443
-2023-04-24 01:52:42,519 - DEBUG - Starting new HTTPS connection (1): www.alphavantage.co:443
-2023-04-24 01:52:42,823 - DEBUG - https://query1.finance.yahoo.com:443 "GET /v7/finance/download/AAPL?period1=0&period2=1682337162&interval=1d&events=history&includeAdjustedClose=true HTTP/1.1" 403 9
-2023-04-24 01:52:42,828 - WARNING - Failed to get data from yahoo for AAPL: Failed to fetch data from Yahoo Finance
-2023-04-24 01:52:43,642 - DEBUG - https://www.alphavantage.co:443 "GET /query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=AAPL&outputsize=full&apikey=AMN288LRX1SLVM66&datatype=json HTTP/1.1" 200 None
-2023-04-24 01:52:44,741 - ERROR - Unexpected error: 'NoneType' object is not iterable
-2023-04-24 01:52:44,744 - DEBUG - Starting new HTTPS connection (1): www.alphavantage.co:443
-2023-04-24 01:52:44,744 - DEBUG - Starting new HTTPS connection (1): query1.finance.yahoo.com:443
-2023-04-24 01:52:45,504 - DEBUG - https://query1.finance.yahoo.com:443 "GET /v7/finance/download/GOOG?period1=0&period2=1682337164&interval=1d&events=history&includeAdjustedClose=true HTTP/1.1" 403 9
-2023-04-24 01:52:45,507 - WARNING - Failed to get data from yahoo for GOOG: Failed to fetch data from Yahoo Finance
-2023-04-24 01:52:45,879 - DEBUG - https://www.alphavantage.co:443 "GET /query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=GOOG&outputsize=full&apikey=AMN288LRX1SLVM66&datatype=json HTTP/1.1" 200 None
-2023-04-24 01:52:49,881 - ERROR - Unexpected error: 'NoneType' object is not iterable
+2023-04-24 01:57:54,244 - INFO - Getting data from multiple sources for ['AAPL', 'GOOG']
+2023-04-24 01:57:54,281 - DEBUG - Starting new HTTPS connection (1): query1.finance.yahoo.com:443
+2023-04-24 01:57:54,299 - DEBUG - Starting new HTTPS connection (1): www.alphavantage.co:443
+2023-04-24 01:57:55,074 - DEBUG - https://query1.finance.yahoo.com:443 "GET /v7/finance/download/AAPL?period1=0&period2=1682337474&interval=1d&events=history&includeAdjustedClose=true HTTP/1.1" 403 9
+2023-04-24 01:57:55,078 - WARNING - Failed to get data from yahoo for AAPL: Failed to fetch data from Yahoo Finance
+2023-04-24 01:57:55,283 - DEBUG - https://www.alphavantage.co:443 "GET /query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=AAPL&outputsize=full&apikey=AMN288LRX1SLVM66&datatype=json HTTP/1.1" 200 None
+2023-04-24 01:57:56,383 - ERROR - Unexpected error: 'NoneType' object is not iterable
+2023-04-24 01:57:56,386 - DEBUG - Starting new HTTPS connection (1): query1.finance.yahoo.com:443
+2023-04-24 01:57:56,386 - DEBUG - Starting new HTTPS connection (1): www.alphavantage.co:443
+2023-04-24 01:57:56,796 - DEBUG - https://www.alphavantage.co:443 "GET /query?function=TIME_SERIES_DAILY_ADJUSTED&symbol=GOOG&outputsize=full&apikey=AMN288LRX1SLVM66&datatype=json HTTP/1.1" 200 None
+2023-04-24 01:57:56,859 - ERROR - Unexpected error: 'NoneType' object is not iterable
+2023-04-24 01:57:57,151 - DEBUG - https://query1.finance.yahoo.com:443 "GET /v7/finance/download/GOOG?period1=0&period2=1682337476&interval=1d&events=history&includeAdjustedClose=true HTTP/1.1" 403 9
+2023-04-24 01:57:57,154 - WARNING - Failed to get data from yahoo for GOOG: Failed to fetch data from Yahoo Finance
+2023-04-24 01:57:57,155 - INFO - Successfully collected data for ['AAPL', 'GOOG']

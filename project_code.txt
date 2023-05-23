@@ -1,4 +1,16 @@
 ### dump of all the python scripts for market_magician
+## Market_Magician - https://github.com/stonezone/Market_Magician
+## AdvancedDataProcessor.py - https://github.com/stonezone/Market_Magician/blob/main/AdvancedDataProcessor.py
+## DataStorageManager.py - https://github.com/stonezone/Market_Magician/blob/main/DataStorageManager.py
+## MarketDataCollector.py - https://github.com/stonezone/Market_Magician/blob/main/MarketDataCollector.py
+## SecurityManager.py - https://github.com/stonezone/Market_Magician/blob/main/SecurityManager.py
+## StrategyCreator.py - https://github.com/stonezone/Market_Magician/blob/main/StrategyCreator.py
+## TradeManager.py - https://github.com/stonezone/Market_Magician/blob/main/TradeManager.py
+## main.py - https://github.com/stonezone/Market_Magician/blob/main/main.py
+## debug.py - https://github.com/stonezone/Market_Magician/blob/main/debug.py
+
+### script contents to follow:
+
 
 AdvancedDataProcessor.py - https://github.com/stonezone/Market_Magician/blob/main/AdvancedDataProcessor.py
 
